@@ -1,0 +1,81 @@
+package com.Day6;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class JDbcdemo {
+    public static void main(String[] args)  {
+        //这是一个很标准的格式
+        Statement statement=null;
+        Connection connection=null;
+        //注册驱动
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            //获取桥梁，连接对象Connection
+            connection=DriverManager.getConnection("jdbc:mysql://localhost:3306/test","root","root");
+            //定义sql语句
+            String sql="update student set age=86 where id=1";
+            //执行sql语句的对象
+             statement=connection.createStatement();
+            //去执行sql
+            //这里的返回值是影响的行数
+            int count=statement.executeUpdate(sql);
+            //处理结果
+            System.out.println(count);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally {
+            //释放资源
+            //避免空指针异常
+            if(statement!=null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if(connection!=null){
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+
+
+    }
+}
+/*
+* DriverManager对象---驱动管理对象
+*  功能：1.注册驱动 告诉我们的程序用那一个数据库驱动jar包 2.获取数据库连接【这里面有一个静态代码块】
+*  其实注册驱动是可以不用写的，因为在jar包META-services有注册驱动的语句
+* Connection对象--数据库连接对象
+*
+* Statement--执行sql的对象
+* 用于执行静态sql语句并返回结果集
+* 用他的executeUpdate方法可以执行DML语句（INSERT、UPDATE、DELETE）
+* DDL语句：CREATE、 ALTER、 DROP。
+* 对于DDL语句用executeUpdate是无法返回结果的
+* ResultSet--结果集对象
+*  结果集对象：封装查询的结果[有一个游标的概念：游标默认是在数据库列表的0行上]
+*  next方法--游标向下移动
+*  一次只获取某一行的某一列的数据
+*  getXxx(参数)--获取数据其中的Xxx表示的是数据类型，为了指定获取某一列的数据需要给个参数
+* 参数：int--表示列的编号从1开始   String--列表的名称
+* PreparedStatement对象--功能更加强大的执行sql对象
+* */
+/*
+* SQL注入问题--问题就出在静态sql的情况下 你的sql语句是拼接的，那就有可以有一下关键字如or等参与
+* 解决SQL注入问题：使用 PreparedStatement对象，执行预编译的sql
+* 预编译的sql:sql里面的参数是使用？占位符--可以想成字符串格式化操作
+*  在创建PreparedStatement对象的时候这个预编译的sql要作为参数传过去
+*  而在PreparedStatement执行sql前需要复制--用setXxx(参数1，参数2)
+* 参数1--？ 的位置，参数2--对这个问号复制
+* 然后复制完就可以用executeXxx方法
+* */
